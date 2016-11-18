@@ -10,6 +10,7 @@ import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.inject.multibindings.Multibinder;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.plugins.SearchPlugin;
+import org.elasticsearch.search.fetch.FetchSubPhase;
 import org.yinqiwen.elasticsearch.plugin.aboost.cfg.Config;
 import org.yinqiwen.elasticsearch.plugin.aboost.functions.FieldMatchFactorFunctionBuilder;
 import org.yinqiwen.elasticsearch.plugin.aboost.functions.FieldRefValueFactorFunctionBuilder;
@@ -20,6 +21,12 @@ public class ABoostPlugin extends Plugin implements SearchPlugin {
 	@Override
 	public Collection<Module> createGuiceModules() {
 		return Collections.<Module> singletonList(new ConfiguredModule());
+	}
+	
+	@Override
+	public List<FetchSubPhase> getFetchSubPhases(FetchPhaseConstructionContext context) {
+		// TODO Auto-generated method stub
+		return SearchPlugin.super.getFetchSubPhases(context);
 	}
 
 	@Override
