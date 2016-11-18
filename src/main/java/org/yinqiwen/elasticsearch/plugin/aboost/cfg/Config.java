@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -82,7 +84,12 @@ public class Config implements ReloadFile {
 		BufferedReader br = null;
 		try {
 			String line;
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName("UTF-8")));
+			br = AccessController.doPrivileged(new PrivilegedExceptionAction<BufferedReader>(){
+				@Override
+				public BufferedReader run() throws Exception {
+					return new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName("UTF-8")));
+				}	
+			});
 			while ((line = br.readLine()) != null) {
 				String[] ss = line.trim().split(",");
 				logger.info("###" + line);

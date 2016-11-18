@@ -4,7 +4,10 @@
 package org.yinqiwen.elasticsearch.utils;
 
 import java.io.File;
+import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,14 +57,29 @@ public class FileWatcher implements Runnable {
 
 	@Override
 	public void run() {
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null) {
+			// unprivileged code such as scripts do not have SpecialPermission
+			sm.checkPermission(new SpecialPermission());
+		}
 		while (true) {
 			try {
 				for (Entry<String, WatchFile> entry : watchFiles.entrySet()) {
-					File f = new File(entry.getValue().file);
-					if(f.exists() && f.lastModified() > entry.getValue().ts){
-						if(entry.getValue().cb != null){
+					Long ts = AccessController.doPrivileged(new PrivilegedExceptionAction<Long>(){
+						@Override
+						public Long run() throws Exception {
+							// TODO Auto-generated method stub
+							File f = new File(entry.getValue().file);
+							if(f.exists()){
+								return f.lastModified();
+							}
+							return 0L;
+						}	
+					});
+					if (ts > 0 && ts > entry.getValue().ts) {
+						if (entry.getValue().cb != null) {
 							entry.getValue().cb.onReload(entry.getValue().file);
-							entry.getValue().ts = f.lastModified();
+							entry.getValue().ts = ts;
 						}
 					}
 				}
